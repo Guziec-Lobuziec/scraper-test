@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import os
+import sys
 
 # Scrapy settings for blogscraper project
 #
@@ -62,10 +64,18 @@ ROBOTSTXT_OBEY = True
 #    'scrapy.extensions.telnet.TelnetConsole': None,
 #}
 
+# Django integration
+sys.path.append(os.path.dirname(os.path.abspath('.')))
+os.environ['DJANGO_SETTINGS_MODULE'] = 'exerbackend.settings'
+
+import django
+django.setup()
+
 # Configure item pipelines
 # See https://doc.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
    'blogscraper.pipelines.PrettifyPipeline': 300,
+   'blogscraper.pipelines.PersistancePipeline': 900
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)

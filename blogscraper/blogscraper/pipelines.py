@@ -6,6 +6,8 @@
 # See: https://doc.scrapy.org/en/latest/topics/item-pipeline.html
 
 import re
+from blogscraper.items import WordStatisticItem
+from collections import defaultdict
 
 class PrettifyPipeline(object):
 
@@ -36,5 +38,28 @@ class PrettifyPipeline(object):
 class StopWordsPipeline(object):
 
     def process_item(self, item, spider):
+        return item
+
+
+class PersistancePipeline(object):
+    """docstring for PersistancePipeline."""
+
+    def process_item(self, item, spider):
+
+        if item.get('content'):
+            stats = defaultdict(int)
+            for k in item['content']:
+                stats[k] += 1
+
+
+            for record in WordStatisticItem.django_model.objects.filter(word_of_intrest__in = stats.keys()):
+                    stats[record.word_of_intrest] += record.occurance_count
+
+            for k,v in stats.items():
+                WordStatisticItem(
+                    word_of_intrest = k,
+                    occurance_count = v
+                ).save()
+
 
         return item
