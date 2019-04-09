@@ -49,6 +49,7 @@ class PersistancePipeline(object):
     new_version = None
 
     def open_spider(self, spider):
+        StatsVersion.objects.filter(ready = False).delete()
         self.new_version = StatsVersion.objects.create(ready=False)
 
     def close_spider(self, spider):

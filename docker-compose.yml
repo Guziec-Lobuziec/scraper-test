@@ -1,0 +1,14 @@
+version: '3'
+
+services:
+  db:
+    image: postgres:9.6
+  rest:
+    build: .
+    command: bash entrypoint.sh
+    volumes:
+      - .:/code
+    ports:
+      - "8080:8000"
+    depends_on:
+      - db
