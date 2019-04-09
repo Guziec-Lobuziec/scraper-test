@@ -6,8 +6,10 @@
 # See: https://doc.scrapy.org/en/latest/topics/item-pipeline.html
 
 import re
-from blogscraper.items import WordStatisticItem
+import copy
+from rest.models import AuthorStatistic, GloballStatistic, Author, StatsVersion, Word
 from collections import defaultdict
+
 
 class PrettifyPipeline(object):
 
@@ -44,22 +46,76 @@ class StopWordsPipeline(object):
 class PersistancePipeline(object):
     """docstring for PersistancePipeline."""
 
+    new_version = None
+
+    def open_spider(self, spider):
+        self.new_version = StatsVersion.objects.create(ready=False)
+
+    def close_spider(self, spider):
+        StatsVersion.objects.filter(ready = True).delete()
+        self.new_version.ready = True
+        self.new_version.save()
+
     def process_item(self, item, spider):
+
+        author = None
+
+        if item.get('author'):
+            author_in_db = Author.objects.get_or_create(
+                url=item['author'].lower().replace(" ",""),
+                defaults={'full_name': item['author']}
+            )[0]
 
         if item.get('content'):
             stats = defaultdict(int)
             for k in item['content']:
                 stats[k] += 1
 
+            words_in_db = {k: Word.objects.get_or_create(word_of_interest = k)[0]
+                      for k in stats.keys()}
 
-            for record in WordStatisticItem.django_model.objects.filter(word_of_intrest__in = stats.keys()):
-                    stats[record.word_of_intrest] += record.occurance_count
+            if(author_in_db):
+                for k,v in self.prepair_author_stats(author_in_db,stats).items():
+                    AuthorStatistic.objects.update_or_create(
+                        word = words_in_db[k],
+                        author = author_in_db,
+                        version = self.new_version,
+                        defaults = {'occurance_count': v}
+                    )
 
-            for k,v in stats.items():
-                WordStatisticItem(
-                    word_of_intrest = k,
-                    occurance_count = v
-                ).save()
+            for k,v in self.prepair_global_stats(stats).items():
+                GloballStatistic.objects.update_or_create(
+                    word = words_in_db[k],
+                    version = self.new_version,
+                    defaults = {'occurance_count': v}
+                )
+
+        return stats
+
+    def prepair_stats(self, stats, query):
+
+        cp = copy.deepcopy(stats)
+        for record in query:
+            cp[record.word.word_of_interest] += record.occurance_count
+
+        return cp
 
 
-        return item
+    def prepair_author_stats(self, author, stats):
+
+        return self.prepair_stats(
+            stats = stats,
+            query = AuthorStatistic.objects \
+            .filter(author__url = author.url) \
+            .filter(word__word_of_interest__in = stats.keys()) \
+            .filter(version__version_number = self.new_version.version_number)
+        )
+
+    def prepair_global_stats(self, stats):
+
+        return self.prepair_stats(
+            stats = stats,
+            query = GloballStatistic.objects \
+            .filter(word__word_of_interest__in = stats.keys()) \
+            .filter(version__version_number = self.new_version.version_number)
+        )
