@@ -7,8 +7,9 @@
 
 import re
 import copy
-from rest.models import AuthorStatistic, GloballStatistic, Author, StatsVersion, Word
 from collections import defaultdict
+from rest.models import AuthorStatistic, GloballStatistic, Author, StatsVersion, Word
+from blogscraper.static import stop_words
 
 
 class PrettifyPipeline(object):
@@ -40,6 +41,11 @@ class PrettifyPipeline(object):
 class StopWordsPipeline(object):
 
     def process_item(self, item, spider):
+
+        if item.get('content'):
+            item['content'] = [x for x in item['content']
+                               if x if x not in stop_words]
+
         return item
 
 

@@ -1,9 +1,12 @@
-__pycache__
-db.sqlite3
-.git
-.gitignore
+**/__pycache__
+**/db.sqlite3
+**/.git
+**/.gitignore
 
-*.md
-README-secret.md
+**/*.md
+**/README-secret.md
 
-env
+**/env
+
+**/*.log
+**/Dockerfile

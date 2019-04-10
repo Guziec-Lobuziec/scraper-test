@@ -22,8 +22,7 @@ class GloballStats(APIView):
             return Response(
                 {stat.word.word_of_interest: stat.occurance_count
                  for stat in GloballStatistic.objects \
-                 .filter(version__version_number=current_version.version_number) \
-                 .order_by('-occurance_count')[:10]}
+                 .filter(version__version_number=current_version.version_number)[:10]}
             )
         else:
             return Response({})
@@ -46,8 +45,7 @@ class AuthorStats(APIView):
                 {stat.word.word_of_interest: stat.occurance_count
                  for stat in AuthorStatistic.objects \
                  .filter(version__version_number=current_version.version_number) \
-                 .filter(author__url=urllib.parse.unquote(author)) \
-                 .order_by('-occurance_count')[:10]}
+                 .filter(author__url=urllib.parse.unquote(author))[:10]}
             )
         else:
             return Response({})
@@ -62,5 +60,6 @@ class Authors(APIView):
     def get(self, request, format=None):
 
         return Response(
-            {author.url: author.full_name for author in Author.objects.all()}
+            {author.url: author.full_name
+             for author in Author.objects.all().order_by('url')}
         )

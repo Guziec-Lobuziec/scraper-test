@@ -75,6 +75,7 @@ django.setup()
 # See https://doc.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
    'blogscraper.pipelines.PrettifyPipeline': 300,
+   'blogscraper.pipelines.StopWordsPipeline': 400,
    'blogscraper.pipelines.PersistancePipeline': 900
 }
 
