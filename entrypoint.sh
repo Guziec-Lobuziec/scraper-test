@@ -1,10 +1,8 @@
 #!/bin/bash
-
-python manage.py makemigrations
-
+#scraper start
 python manage.py migrate
 
-crontab cron_jobs.txt
+crontab cron-jobs.txt
 
 bash crawl.sh &
 

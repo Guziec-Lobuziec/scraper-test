@@ -5,7 +5,7 @@ services:
     image: postgres:9.6
   rest:
     build: .
-    command: bash entrypoint.sh
+    command: ["bash", "wait-for-postgresql.sh", "db", "bash", "entrypoint.sh"]
     volumes:
       - .:/code
     ports:
